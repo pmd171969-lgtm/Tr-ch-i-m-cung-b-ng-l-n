@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Arcade Hub - Cổng Game Trực Tuyến</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&display=swap');
+
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .arcade-font {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Glassmorphism & Visual FX */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-button {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.2s ease;
+        }
+
+        .glass-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(6, 182, 212, 0.5);
+        }
+
+        .glass-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Neon Glows */
+        .neon-border-cyan {
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.4), inset 0 0 15px rgba(6, 182, 212, 0.2);
+            border-color: rgba(6, 182, 212, 0.6);
+        }
+
+        .neon-text-pink {
+            text-shadow: 0 0 10px rgba(236, 72, 153, 0.7), 0 0 20px rgba(236, 72, 153, 0.4);
+        }
+
+        .neon-text-cyan {
+            text-shadow: 0 0 10px rgba(6, 182, 212, 0.7), 0 0 20px rgba(6, 182, 212, 0.4);
+        }
+
+        .neon-text-yellow {
+            text-shadow: 0 0 10px rgba(234, 179, 8, 0.7), 0 0 20px rgba(234, 179, 8, 0.4);
+        }
+
+        /* D-Pad Control Buttons */
+        .dpad-btn {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .dpad-btn:active {
+            background: rgba(6, 182, 212, 0.4);
+            border-color: #06b6d4;
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.6);
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.03); }
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 2s infinite ease-in-out;
+        }
+
+        .modal-overlay {
+            background: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(10px);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(6, 182, 212, 0.4);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(6, 182, 212, 0.7);
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-slate-100">
+
+    <!-- ================= Sidebar Navigation ================= -->
+    <aside class="w-20 md:w-64 glass-panel border-r border-slate-800 flex flex-col justify-between shrink-0 z-20">
+        <div class="p-4">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3 px-2 py-3 mb-6">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 pulse-glow shrink-0">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5z"/>
+                    </svg>
+                </div>
+                <span class="arcade-font text-xl font-bold tracking-wider text-white hidden md:block neon-text-cyan">ARCADE<span class="text-cyan-400">HUB</span></span>
+            </div>
+
+            <!-- Navigation Menu -->
+            <nav class="space-y-2">
+                <button onclick="filterCategory('all', this)" class="nav-btn active w-full flex items-center gap-4 px-3 py-3 rounded-xl glass-button text-cyan-400 font-semibold transition">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span class="hidden md:block">Trang Chủ</span>
+                </button>
+
+                <button onclick="filterCategory('trending', this)" class="nav-btn w-full flex items-center gap-4 px-3 py-3 rounded-xl text-slate-400 hover:text-white transition">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                    <span class="hidden md:block">Thịnh Hành</span>
+                </button>
+
+                <button onclick="filterCategory('arcade', this)" class="nav-btn w-full flex items-center gap-4 px-3 py-3 rounded-xl text-slate-400 hover:text-white transition">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    <span class="hidden md:block">Thể Loại</span>
+                </button>
+
+                <button onclick="filterCategory('library', this)" class="nav-btn w-full flex items-center gap-4 px-3 py-3 rounded-xl text-slate-400 hover:text-white transition">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                    <span class="hidden md:block">Thư Viện Của Tôi</span>
+                </button>
+
+                <button onclick="alert('Tính năng Cài Đặt đang được cập nhật!')" class="nav-btn w-full flex items-center gap-4 px-3 py-3 rounded-xl text-slate-400 hover:text-white transition">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span class="hidden md:block">Cài Đặt</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- User Profile Avatar -->
+        <div class="p-4 border-t border-slate-800">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-slate-800 border-2 border-cyan-400 flex items-center justify-center font-bold text-cyan-400 shrink-0">
+                    AV
+                </div>
+                <div class="hidden md:block overflow-hidden">
+                    <p class="text-sm font-semibold text-white truncate">Player One</p>
+                    <p class="text-xs text-slate-400 truncate">Pro Gamer</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ================= Main Content Area ================= -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <!-- Top Header Bar -->
+        <header class="sticky top-0 z-10 glass-panel px-6 py-4 border-b border-slate-800 flex items-center justify-between gap-4">
+            <div class="relative flex-1 max-w-md">
+                <svg class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input type="text" id="search-input" onkeyup="searchGames()" placeholder="Tìm kiếm trò chơi..." class="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-900/80 border border-slate-700/60 text-sm focus:outline-none focus:border-cyan-400 transition placeholder-slate-500">
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span class="text-slate-300 font-medium">Trực Tuyến</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-6 space-y-8 max-w-7xl mx-auto w-full">
+            <!-- Hero Banner -->
+            <section class="relative rounded-3xl overflow-hidden glass-panel border border-cyan-500/30 neon-border-cyan p-6 sm:p-10 flex flex-col justify-end min-h-[280px] sm:min-h-[340px] bg-gradient-to-r from-slate-950 via-slate-900/90 to-cyan-950/40">
+                <div class="relative z-10 max-w-xl space-y-3">
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-400/40 uppercase tracking-widest inline-block">Trò Chơi Nổi Bật</span>
+                    <h1 class="arcade-font text-3xl sm:text-5xl font-black text-white leading-tight neon-text-cyan">MÊ CUNG BÓNG LĂN</h1>
+                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed">Vượt qua mê cung vô tận, bơm hơi tích điểm và né tránh các hố bẫy chết người trên nền nhạc Synthwave sôi động!</p>
+                    <div class="pt-2">
+                        <button onclick="launchGame('ball-maze')" class="arcade-font px-8 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-base shadow-lg shadow-cyan-500/40 transition transform hover:scale-105 active:scale-95 flex items-center gap-3">
+                            <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            CHƠI NGAY
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Game Grid Section -->
+            <section>
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="arcade-font text-2xl font-bold text-white tracking-wide">DANH SÁCH TRÒ CHƠI</h2>
+                    <span id="game-count" class="text-xs text-slate-400">Hiển thị 2 trò chơi</span>
+                </div>
+
+                <div id="game-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+                    <!-- Game Card 1: Ball Maze -->
+                    <div class="game-card glass-panel rounded-2xl overflow-hidden border border-slate-800 hover:border-cyan-500/50 transition duration-300 transform hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-950/50 flex flex-col" data-title="Mê Cung Bóng Lăn" data-category="arcade">
+                        <div class="relative h-44 bg-slate-900 overflow-hidden flex items-center justify-center bg-gradient-to-tr from-cyan-950 to-slate-900">
+                            <div class="w-20 h-20 rounded-full border-4 border-cyan-400/30 flex items-center justify-center pulse-glow">
+                                <div class="w-10 h-10 rounded-full bg-pink-500 shadow-lg shadow-pink-500/50"></div>
+                            </div>
+                            <span class="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-slate-900/80 text-[10px] font-bold text-cyan-400 border border-slate-700">ARCADE</span>
+                        </div>
+                        <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                            <div>
+                                <h3 class="arcade-font text-lg font-bold text-white mb-1">Mê Cung Bóng Lăn</h3>
+                                <p class="text-xs text-slate-400 line-clamp-2">Điều khiển quả bóng lăn qua các ngõ ngách mê cung, thu thập đồ bơm hơi và tìm lối thoát.</p>
+                            </div>
+                            <button onclick="launchGame('ball-maze')" class="w-full py-2.5 rounded-xl glass-button text-cyan-400 font-bold text-sm flex items-center justify-center gap-2 hover:bg-cyan-500 hover:text-slate-950 transition">
+                                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                BẮT ĐẦU CHƠI
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Game Card 2: Cyber Snake -->
+                    <div class="game-card glass-panel rounded-2xl overflow-hidden border border-slate-800 hover:border-emerald-500/50 transition duration-300 transform hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-950/50 flex flex-col" data-title="Rắn Săn Mồi Cyberpunk" data-category="arcade">
+                        <div class="relative h-44 bg-slate-900 overflow-hidden flex items-center justify-center bg-gradient-to-tr from-emerald-950 to-slate-900">
+                            <div class="flex items-center gap-1">
+                                <div class="w-5 h-5 rounded bg-emerald-400 shadow-md shadow-emerald-400/50"></div>
+                                <div class="w-5 h-5 rounded bg-emerald-500"></div>
+                                <div class="w-5 h-5 rounded bg-emerald-600"></div>
+                                <div class="w-5 h-5 rounded-full bg-red-500 animate-pulse ml-2"></div>
+                            </div>
+                            <span class="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-slate-900/80 text-[10px] font-bold text-emerald-400 border border-slate-700">CLASSIC</span>
+                        </div>
+                        <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                            <div>
+                                <h3 class="arcade-font text-lg font-bold text-white mb-1">Rắn Săn Mồi Cyber</h3>
+                                <p class="text-xs text-slate-400 line-clamp-2">Trò chơi rắn săn mồi cổ điển với phong cách hiệu ứng neon hiện đại và độ khó tăng dần.</p>
+                            </div>
+                            <button onclick="launchGame('snake')" class="w-full py-2.5 rounded-xl glass-button text-emerald-400 font-bold text-sm flex items-center justify-center gap-2 hover:bg-emerald-500 hover:text-slate-950 transition">
+                                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                BẮT ĐẦU CHƠI
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- ================= In-App Game Player Modal ================= -->
+    <div id="game-player-modal" class="fixed inset-0 modal-overlay z-50 hidden flex flex-col items-center justify-center p-2 sm:p-4">
+        <div class="w-full max-w-xl glass-panel rounded-t-2xl px-4 py-3 border-b border-slate-700/50 flex items-center justify-between shrink-0">
+            <span id="active-game-title" class="arcade-font text-lg font-bold text-cyan-400">TRÒ CHƠI</span>
+            <button onclick="closeGameModal()" class="glass-button px-3 py-1.5 rounded-xl text-red-400 hover:text-red-300 text-xs font-bold flex items-center gap-2 border-red-500/30">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                THOÁT HUB
+            </button>
+        </div>
+
+        <div class="w-full max-w-xl flex-1 glass-panel rounded-b-2xl overflow-y-auto flex items-center justify-center p-2 sm:p-4 border-t-0">
+            
+            <!-- GAME 1: BALL MAZE CONTAINER -->
+            <div id="ball-maze-wrapper" class="w-full h-full flex flex-col items-center justify-between hidden">
+                <header class="w-full max-w-lg glass-panel rounded-2xl p-3 sm:p-4 mb-2 flex items-center justify-between border border-slate-700/50 gap-2">
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <div class="text-center">
+                            <span class="text-xs text-slate-400 font-semibold block uppercase tracking-wider">Màn</span>
+                            <span id="level-display" class="arcade-font text-xl sm:text-2xl font-bold text-cyan-400 neon-text-cyan">01</span>
+                        </div>
+                        <div class="h-8 w-[1px] bg-slate-700"></div>
+                        <div class="text-left">
+                            <span class="text-xs text-slate-400 font-semibold block uppercase tracking-wider">Điểm</span>
+                            <span id="score-display" class="arcade-font text-xl sm:text-2xl font-bold text-pink-500 neon-text-pink">0000</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <div class="text-right hidden xs:block">
+                            <span class="text-xs text-slate-400 font-semibold block uppercase tracking-wider">Điểm Cao</span>
+                            <span id="highscore-display" class="arcade-font text-base sm:text-xl font-bold text-amber-400 neon-text-yellow">0000</span>
+                        </div>
+
+                        <button id="leaderboard-btn" class="glass-button p-2 rounded-xl text-amber-400 hover:text-amber-300 transition focus:outline-none" title="Bảng Xếp Hạng">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </button>
+
+                        <button id="pause-btn" class="glass-button p-2 rounded-xl text-yellow-400 hover:text-yellow-300 transition focus:outline-none hidden" title="Tạm Dừng (ESC / P)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </button>
+
+                        <div class="flex items-center gap-2 bg-slate-900/50 p-1.5 rounded-xl border border-slate-700/50">
+                            <div class="flex items-center gap-1.5 px-1" title="Điều chỉnh âm lượng nhạc nền">
+                                <svg class="w-4 h-4 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 .895-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 .895-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                                </svg>
+                                <input type="range" id="bgm-volume-slider" min="0" max="1" step="0.01" value="0.3" class="w-14 sm:w-20 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-400 focus:outline-none">
+                            </div>
+
+                            <button id="sound-toggle-btn" class="glass-button p-2 rounded-xl text-slate-300 hover:text-white transition focus:outline-none">
+                                <svg id="sound-icon-on" class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"/>
+                                </svg>
+                                <svg id="sound-icon-off" class="w-4 h-4 text-slate-500 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <main class="relative w-full max-w-lg flex-1 flex items-center justify-center my-auto">
+                    <div class="relative w-full aspect-square glass-panel rounded-3xl p-2 sm:p-3 border border-cyan-500/30 neon-border-cyan flex items-center justify-center overflow-hidden">
+                        <canvas id="gameCanvas" class="w-full h-full rounded-2xl block bg-slate-950/80 cursor-pointer"></canvas>
+
+                        <!-- Start Overlay -->
+                        <div id="start-overlay" class="absolute inset-0 modal-overlay rounded-3xl flex flex-col items-center justify-center p-6 text-center z-10">
+                            <div class="w-16 h-16 rounded-2xl bg-cyan-500/20 border border-cyan-400/50 flex items-center justify-center mb-4 pulse-glow">
+                                <svg class="w-10 h-10 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                            </div>
+                            <h1 class="arcade-font text-2xl sm:text-3xl font-black text-white mb-2 neon-text-cyan">MÊ CUNG BÓNG LĂN</h1>
+                            <p class="text-slate-300 text-sm mb-6 max-w-xs">Điều khiển quả bóng vượt mê cung, thu thập đồ bơm hơi để tăng điểm và tránh các hố bẫy nguy hiểm!</p>
+                            
+                            <div class="flex flex-col gap-2.5 w-full max-w-xs">
+                                <button id="start-btn" class="arcade-font px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-lg shadow-lg shadow-cyan-500/30 transition transform hover:scale-105 active:scale-95">
+                                    BẮT ĐẦU CHƠI
+                                </button>
+                                <div class="flex gap-2">
+                                    <button id="instructions-btn-start" class="flex-1 glass-button py-2.5 rounded-xl text-slate-200 hover:text-white text-sm font-semibold flex items-center justify-center gap-1.5 border border-slate-700">
+                                        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        Hướng Dẫn
+                                    </button>
+                                    <button id="leaderboard-btn-start" class="flex-1 glass-button py-2.5 rounded-xl text-slate-200 hover:text-white text-sm font-semibold flex items-center justify-center gap-1.5 border border-slate-700">
+                                        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                                        Xếp Hạng
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+
+                <footer class="w-full max-w-lg mt-2 mb-1 flex justify-between items-center gap-4">
+                    <div class="hidden sm:flex flex-col text-xs text-slate-400 gap-1 pl-2">
+                        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span> Phím: Mũi tên / WASD</div>
+                        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Đồ bơm: +100 điểm</div>
+                        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span> Bẫy: Thua cuộc</div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-1.5 w-36 h-36 mx-auto sm:mr-0 sm:ml-auto">
+                        <div></div>
+                        <button id="btn-up" class="dpad-btn rounded-xl flex items-center justify-center text-cyan-400 active:text-white">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
+                        </button>
+                        <div></div>
+                        <button id="btn-left" class="dpad-btn rounded-xl flex items-center justify-center text-cyan-400 active:text-white">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <button id="btn-down" class="dpad-btn rounded-xl flex items-center justify-center text-cyan-400 active:text-white">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <button id="btn-right" class="dpad-btn rounded-xl flex items-center justify-center text-cyan-400 active:text-white">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                </footer>
+            </div>
+
+            <!-- GAME 2: SNAKE GAME CONTAINER -->
+            <div id="snake-wrapper" class="w-full max-w-md flex flex-col items-center justify-center gap-4 hidden">
+                <div class="w-full glass-panel rounded-2xl p-4 flex items-center justify-between border border-slate-700/50">
+                    <div>
+                        <span class="text-xs text-slate-400 block uppercase">Điểm số</span>
+                        <span id="snake-score" class="arcade-font text-2xl font-bold text-emerald-400">0</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400 block uppercase">Điểm Cao</span>
+                        <span id="snake-highscore" class="arcade-font text-2xl font-bold text-amber-400">0</span>
+                    </div>
+                </div>
+
+                <div class="relative w-full aspect-square glass-panel rounded-2xl p-2 border border-emerald-500/30 flex items-center justify-center">
+                    <canvas id="snakeCanvas" width="400" height="400" class="w-full h-full bg-slate-950 rounded-xl block"></canvas>
+                    
+                    <div id="snake-overlay" class="absolute inset-0 modal-overlay rounded-2xl flex flex-col items-center justify-center p-6 text-center">
+                        <h2 class="arcade-font text-3xl font-black text-emerald-400 mb-2">RẮN SĂN MỒI</h2>
+                        <p class="text-xs text-slate-300 mb-6">Dùng phím mũi tên hoặc bàn phím D-Pad để điều khiển!</p>
+                        <button onclick="startSnakeGame()" class="arcade-font px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold text-lg shadow-lg hover:scale-105 active:scale-95 transition">
+                            BẮT ĐẦU CHƠI
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-1.5 w-36 h-36">
+                    <div></div>
+                    <button onclick="setSnakeDir('UP')" class="dpad-btn rounded-xl flex items-center justify-center text-emerald-400"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg></button>
+                    <div></div>
+                    <button onclick="setSnakeDir('LEFT')" class="dpad-btn rounded-xl flex items-center justify-center text-emerald-400"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg></button>
+                    <button onclick="setSnakeDir('DOWN')" class="dpad-btn rounded-xl flex items-center justify-center text-emerald-400"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg></button>
+                    <button onclick="setSnakeDir('RIGHT')" class="dpad-btn rounded-xl flex items-center justify-center text-emerald-400"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================= Game Over Modal Overlay ================= -->
+    <div id="gameover-modal" class="fixed inset-0 modal-overlay flex items-center justify-center p-4 z-50 hidden">
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center border border-red-500/40 shadow-2xl shadow-red-950/50">
+            <div class="w-16 h-16 mx-auto rounded-full bg-red-500/20 border border-red-500/50 flex items-center justify-center mb-4">
+                <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <h2 class="arcade-font text-3xl font-black text-red-500 mb-1 tracking-wider neon-text-pink">GAME OVER</h2>
+            <p class="text-slate-400 text-sm mb-6">Bạn đã rơi vào hố bẫy nguy hiểm!</p>
+            <div class="bg-slate-900/60 rounded-xl p-4 mb-6 border border-slate-800 flex justify-around">
+                <div><span class="text-xs text-slate-500 block">MÀN HIỆN TẠI</span><span id="modal-level" class="arcade-font text-lg text-cyan-400 font-bold">01</span></div>
+                <div class="w-[1px] bg-slate-800"></div>
+                <div><span class="text-xs text-slate-500 block">ĐIỂM SỐ</span><span id="modal-score" class="arcade-font text-lg text-pink-500 font-bold">0000</span></div>
+            </div>
+            <div class="flex flex-col gap-2">
+                <button id="retry-btn" class="w-full arcade-font py-3.5 rounded-xl bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white font-bold text-base shadow-lg shadow-red-600/30 transition transform hover:scale-[1.02] active:scale-95">CHƠI LẠI MÀN NÀY</button>
+                <button id="gameover-leaderboard-btn" class="w-full glass-button py-2.5 rounded-xl text-amber-400 hover:text-amber-300 text-sm font-semibold flex items-center justify-center gap-1.5">Xem Bảng Xếp Hạng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Victory Modal Overlay ================= -->
+    <div id="victory-modal" class="fixed inset-0 modal-overlay flex items-center justify-center p-4 z-50 hidden">
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center border border-emerald-500/40 shadow-2xl shadow-emerald-950/50">
+            <div class="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center mb-4 pulse-glow"><svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
+            <h2 class="arcade-font text-2xl sm:text-3xl font-black text-emerald-400 mb-1 tracking-wider neon-text-cyan">HOÀN THÀNH!</h2>
+            <p class="text-slate-300 text-sm mb-6">Bạn đã thoát khỏi mê cung thành công!</p>
+            <button id="next-level-btn" class="w-full arcade-font py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold text-base shadow-lg hover:scale-[1.02] active:scale-95 transition">MÀN TIẾP THEO ➔</button>
+        </div>
+    </div>
+
+    <!-- ================= Pause Game Modal Overlay ================= -->
+    <div id="pause-modal" class="fixed inset-0 modal-overlay flex items-center justify-center p-4 z-50 hidden">
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center border border-amber-500/40 shadow-2xl shadow-amber-950/50">
+            <h2 class="arcade-font text-3xl font-black text-amber-400 mb-1 tracking-wider neon-text-yellow">TẠM DỪNG</h2>
+            <p class="text-slate-400 text-sm mb-6">Trò chơi đang tạm dừng</p>
+            <div class="flex flex-col gap-2.5">
+                <button id="resume-btn" class="arcade-font py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-base shadow-lg transition active:scale-95">TIẾP TỤC CHƠI</button>
+                <button id="pause-restart-btn" class="glass-button py-2.5 rounded-xl text-slate-200 hover:text-white text-sm font-semibold">Chơi Lại Màn Này</button>
+                <button id="pause-instructions-btn" class="glass-button py-2.5 rounded-xl text-cyan-400 hover:text-cyan-300 text-sm font-semibold">Hướng Dẫn Trò Chơi</button>
+                <button id="pause-leaderboard-btn" class="glass-button py-2.5 rounded-xl text-amber-400 hover:text-amber-300 text-sm font-semibold">Bảng Xếp Hạng</button>
+                <button id="pause-mainmenu-btn" class="glass-button py-2.5 rounded-xl text-red-400 hover:text-red-300 text-sm font-semibold border-red-500/30">Về Màn Hình Chính</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Personal Leaderboard Modal ================= -->
+    <div id="leaderboard-modal" class="fixed inset-0 modal-overlay flex items-center justify-center p-4 z-50 hidden">
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-md w-full text-center border border-amber-500/40 shadow-2xl shadow-amber-950/50">
+            <h2 class="arcade-font text-2xl sm:text-3xl font-black text-amber-400 mb-1 tracking-wider neon-text-yellow">BẢNG XẾP HẠNG</h2>
+            <p class="text-slate-400 text-xs sm:text-sm mb-4">Top 5 Kỷ Lục Cao Nhất Trên Thiết Bị</p>
+            <div id="leaderboard-list" class="flex flex-col gap-2 mb-6 max-h-60 overflow-y-auto pr-1"></div>
+            <div class="flex gap-2">
+                <button id="clear-leaderboard-btn" class="glass-button py-2.5 px-4 rounded-xl text-slate-400 hover:text-red-400 text-xs font-semibold">Xóa Kỷ Lục</button>
+                <button id="close-leaderboard-btn" class="flex-1 arcade-font py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 font-bold text-sm shadow-lg active:scale-95">ĐÓNG</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Instructions Modal ================= -->
+    <div id="instructions-modal" class="fixed inset-0 modal-overlay flex items-center justify-center p-4 z-50 hidden">
+        <div class="glass-panel rounded-3xl p-5 sm:p-7 max-w-md w-full border border-cyan-500/40 shadow-2xl shadow-cyan-950/50 max-h-[90vh] flex flex-col">
+            <div class="text-center mb-4 shrink-0">
+                <h2 class="arcade-font text-2xl font-black text-cyan-400 tracking-wider neon-text-cyan">HƯỚNG DẪN CHƠI</h2>
+                <p class="text-slate-400 text-xs">Vượt qua mọi thử thách trong mê cung!</p>
+            </div>
+            <div class="overflow-y-auto pr-1 space-y-3 text-left text-xs sm:text-sm text-slate-300">
+                <div class="bg-slate-900/60 p-3 rounded-2xl border border-slate-800">
+                    <div class="font-bold text-cyan-400 mb-1.5 flex items-center gap-1.5">Cách Điều Khiển Bóng</div>
+                    <ul class="space-y-1 text-slate-300 pl-1">
+                        <li>• <strong class="text-white">Máy tính:</strong> Dùng phím mũi tên <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-cyan-300 text-xs">↑ ↓ ← →</kbd> hoặc <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-cyan-300 text-xs">WASD</kbd>.</li>
+                        <li>• <strong class="text-white">Cảm ứng:</strong> Dùng phím D-Pad góc dưới hoặc Vuốt trên màn hình.</li>
+                        <li>• <strong class="text-white">Tạm dừng:</strong> Nhấn nút <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-yellow-300 text-xs">ESC</kbd> hoặc phím <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-yellow-300 text-xs">P</kbd>.</li>
+                    </ul>
+                </div>
+                <div class="bg-slate-900/60 p-3 rounded-2xl border border-slate-800 space-y-2">
+                    <div class="font-bold text-amber-400 mb-1">Vật Phẩm & Bẫy</div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 rounded-full bg-amber-400 shrink-0 flex items-center justify-center font-bold text-slate-950 text-xs">+</div>
+                        <div><div class="text-amber-300 font-semibold text-xs">Đồ Bơm Hơi (+100 Điểm)</div><div class="text-slate-400 text-xs">Giúp quả bóng phồng to và cộng điểm.</div></div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 rounded-full bg-slate-950 border-2 border-red-500 shrink-0 flex items-center justify-center text-red-500 font-bold text-xs">✕</div>
+                        <div><div class="text-red-400 font-semibold text-xs">Hố Bẫy Nguy Hiểm</div><div class="text-slate-400 text-xs">Tuyệt đối tránh chạm vào hố đen!</div></div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 rounded-full bg-emerald-500 shrink-0 flex items-center justify-center text-slate-950 font-bold text-xs">➔</div>
+                        <div><div class="text-emerald-400 font-semibold text-xs">Cổng Thoát Mê Cung</div><div class="text-slate-400 text-xs">Đưa bóng đến xoáy xanh để qua màn.</div></div>
+                    </div>
+                </div>
+            </div>
+            <button id="close-instructions-btn" class="w-full mt-4 shrink-0 arcade-font py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm shadow-lg active:scale-95">ĐÃ HIỂU</button>
+        </div>
+    </div>
+
+    <!-- JavaScript Source Code -->
+    <script>
+        /* ==========================================================================
+           PORTAL & HUB NAVIGATION LOGIC
+           ========================================================================== */
+        let activeGame = null;
+
+        function launchGame(gameId) {
+            const modal = document.getElementById('game-player-modal');
+            const ballMazeWrapper = document.getElementById('ball-maze-wrapper');
+            const snakeWrapper = document.getElementById('snake-wrapper');
+            const gameTitle = document.getElementById('active-game-title');
+
+            modal.classList.remove('hidden');
+            activeGame = gameId;
+
+            if (gameId === 'ball-maze') {
+                gameTitle.innerText = "MÊ CUNG BÓNG LĂN";
+                ballMazeWrapper.classList.remove('hidden');
+                snakeWrapper.classList.add('hidden');
+                resizeCanvas();
+            } else if (gameId === 'snake') {
+                gameTitle.innerText = "RẮN SĂN MỒI CYBER";
+                snakeWrapper.classList.remove('hidden');
+                ballMazeWrapper.classList.add('hidden');
+                initSnakeGame();
+            }
+        }
+
+        function closeGameModal() {
+            const modal = document.getElementById('game-player-modal');
+            modal.classList.add('hidden');
+
+            if (activeGame === 'ball-maze') {
+                if (gameState === 'PLAYING') {
+                    togglePause();
+                }
+                audio.pauseBGM();
+            } else if (activeGame === 'snake') {
+                clearInterval(snakeInterval);
+            }
+            activeGame = null;
+        }
+
+        function filterCategory(category, element) {
+            const cards = document.querySelectorAll('.game-card');
+            let count = 0;
+
+            cards.forEach(card => {
+                const cardCat = card.getAttribute('data-category');
+                if (category === 'all' || cardCat === category || category === 'trending' || category === 'library') {
+                    card.style.display = 'flex';
+                    count++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            document.getElementById('game-count').innerText = `Hiển thị ${count} trò chơi`;
+
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active', 'text-cyan-400', 'glass-button'));
+            if (element) element.classList.add('active', 'text-cyan-400', 'glass-button');
+        }
+
+        function searchGames() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const cards = document.querySelectorAll('.game-card');
+            let count = 0;
+
+            cards.forEach(card => {
+                const title = card.getAttribute('data-title').toLowerCase();
+                if (title.includes(query)) {
+                    card.style.display = 'flex';
+                    count++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            document.getElementById('game-count').innerText = `Hiển thị ${count} trò chơi`;
+        }
+
+        /* ==========================================================================
+           GAME 1: MÊ CUNG BÓNG LĂN (FULL WEB AUDIO SYNTH & MAZE LOGIC)
+           ========================================================================== */
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+                this.bgmVolume = 0.3;
+                this.bgmPlaying = false;
+                this.bgmTimer = null;
+                this.currentStep = 0;
+                this.nextNoteTime = 0;
+                this.bgmGain = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) {
+                        this.ctx = new AudioContext();
+                        this.bgmGain = this.ctx.createGain();
+                        this.bgmGain.gain.setValueAtTime(this.muted ? 0 : this.bgmVolume, this.ctx.currentTime);
+                        this.bgmGain.connect(this.ctx.destination);
+                    }
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+                this.startBGM();
+            }
+
+            setBGMVolume(vol) {
+                this.bgmVolume = Math.max(0, Math.min(1, vol));
+                if (this.bgmGain && this.ctx) {
+                    this.bgmGain.gain.setValueAtTime(this.muted ? 0 : this.bgmVolume, this.ctx.currentTime);
+                }
+            }
+
+            toggleMute() {
+                this.muted = !this.muted;
+                if (this.bgmGain && this.ctx) {
+                    this.bgmGain.gain.setValueAtTime(this.muted ? 0 : this.bgmVolume, this.ctx.currentTime);
+                }
+                return this.muted;
+            }
+
+            pauseBGM() {
+                if (this.bgmGain && this.ctx) {
+                    this.bgmGain.gain.setValueAtTime(0, this.ctx.currentTime);
+                }
+            }
+
+            resumeBGM() {
+                if (this.bgmGain && this.ctx) {
+                    this.bgmGain.gain.setValueAtTime(this.muted ? 0 : this.bgmVolume, this.ctx.currentTime);
+                }
+            }
+
+            startBGM() {
+                if (this.bgmPlaying || !this.ctx) return;
+                this.bgmPlaying = true;
+                this.currentStep = 0;
+                this.nextNoteTime = this.ctx.currentTime + 0.05;
+                this.scheduler();
+            }
+
+            scheduler() {
+                if (!this.bgmPlaying) return;
+                while (this.nextNoteTime < this.ctx.currentTime + 0.2) {
+                    this.playStep(this.currentStep, this.nextNoteTime);
+                    const secondsPerBeat = 60.0 / 124.0;
+                    const secondsPer16th = secondsPerBeat / 4.0;
+                    this.nextNoteTime += secondsPer16th;
+                    this.currentStep = (this.currentStep + 1) % 32;
+                }
+                this.bgmTimer = setTimeout(() => this.scheduler(), 50);
+            }
+
+            playStep(step, time) {
+                if (this.muted || !this.ctx || gameState === 'PAUSED') return;
+
+                let rootFreq = 110.0;
+                let arpNotes = [220.0, 261.63, 329.63, 440.0];
+
+                if (step >= 8 && step < 16) {
+                    rootFreq = 87.31;
+                    arpNotes = [174.61, 220.0, 261.63, 349.23];
+                } else if (step >= 16 && step < 24) {
+                    rootFreq = 65.41;
+                    arpNotes = [130.81, 164.81, 196.00, 261.63];
+                } else if (step >= 24) {
+                    rootFreq = 98.00;
+                    arpNotes = [196.00, 246.94, 293.66, 392.00];
+                }
+
+                if (step % 2 === 0) {
+                    const bassOsc = this.ctx.createOscillator();
+                    const bassGain = this.ctx.createGain();
+                    const filter = this.ctx.createBiquadFilter();
+
+                    bassOsc.type = 'sawtooth';
+                    bassOsc.frequency.setValueAtTime(rootFreq, time);
+
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(550, time);
+                    filter.frequency.exponentialRampToValueAtTime(140, time + 0.15);
+
+                    bassGain.gain.setValueAtTime(0.18, time);
+                    bassGain.gain.exponentialRampToValueAtTime(0.001, time + 0.16);
+
+                    bassOsc.connect(filter);
+                    filter.connect(bassGain);
+                    bassGain.connect(this.bgmGain);
+
+                    bassOsc.start(time);
+                    bassOsc.stop(time + 0.16);
+                }
+
+                const arpFreq = arpNotes[step % 4];
+                const arpOsc = this.ctx.createOscillator();
+                const arpGain = this.ctx.createGain();
+
+                arpOsc.type = 'triangle';
+                arpOsc.frequency.setValueAtTime(arpFreq, time);
+
+                arpGain.gain.setValueAtTime(0.06, time);
+                arpGain.gain.exponentialRampToValueAtTime(0.001, time + 0.09);
+
+                arpOsc.connect(arpGain);
+                arpGain.connect(this.bgmGain);
+
+                arpOsc.start(time);
+                arpOsc.stop(time + 0.09);
+
+                if (step % 8 === 0) {
+                    const kickOsc = this.ctx.createOscillator();
+                    const kickGain = this.ctx.createGain();
+                    kickOsc.type = 'sine';
+                    kickOsc.frequency.setValueAtTime(120, time);
+                    kickOsc.frequency.exponentialRampToValueAtTime(25, time + 0.11);
+
+                    kickGain.gain.setValueAtTime(0.25, time);
+                    kickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.11);
+
+                    kickOsc.connect(kickGain);
+                    kickGain.connect(this.bgmGain);
+
+                    kickOsc.start(time);
+                    kickOsc.stop(time + 0.11);
+                }
+            }
+
+            playPump() {
+                if (this.muted || !this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(350, now);
+                    osc.frequency.exponentialRampToValueAtTime(950, now + 0.22);
+
+                    gain.gain.setValueAtTime(0.35, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + 0.22);
+                } catch (e) {}
+            }
+
+            playTrap() {
+                if (this.muted || !this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(280, now);
+                    osc.frequency.exponentialRampToValueAtTime(45, now + 0.45);
+
+                    gain.gain.setValueAtTime(0.4, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + 0.45);
+                } catch (e) {}
+            }
+
+            playWin() {
+                if (this.muted || !this.ctx) return;
+                try {
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, i) => {
+                        const now = this.ctx.currentTime + i * 0.08;
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now);
+
+                        gain.gain.setValueAtTime(0.25, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+
+                        osc.start(now);
+                        osc.stop(now + 0.25);
+                    });
+                } catch (e) {}
+            }
+        }
+
+        const audio = new SoundFX();
+
+        class Maze {
+            constructor(cols, rows) {
+                this.cols = cols;
+                this.rows = rows;
+                this.grid = [];
+                for (let r = 0; r < rows; r++) {
+                    let row = [];
+                    for (let c = 0; c < cols; c++) {
+                        row.push({ r, c, walls: [true, true, true, true], visited: false });
+                    }
+                    this.grid.push(row);
+                }
+            }
+
+            generate() {
+                let stack = [];
+                let current = this.grid[0][0];
+                current.visited = true;
+                let unvisitedCount = this.cols * this.rows - 1;
+
+                while (unvisitedCount > 0) {
+                    let neighbors = this.getUnvisitedNeighbors(current);
+                    if (neighbors.length > 0) {
+                        let next = neighbors[Math.floor(Math.random() * neighbors.length)];
+                        this.removeWalls(current, next);
+                        stack.push(current);
+                        current = next;
+                        current.visited = true;
+                        unvisitedCount--;
+                    } else if (stack.length > 0) {
+                        current = stack.pop();
+                    }
+                }
+            }
+
+            getUnvisitedNeighbors(cell) {
+                let neighbors = [];
+                let { r, c } = cell;
+
+                if (r > 0 && !this.grid[r - 1][c].visited) neighbors.push(this.grid[r - 1][c]);
+                if (c < this.cols - 1 && !this.grid[r][c + 1].visited) neighbors.push(this.grid[r][c + 1]);
+                if (r < this.rows - 1 && !this.grid[r + 1][c].visited) neighbors.push(this.grid[r + 1][c]);
+                if (c > 0 && !this.grid[r][c - 1].visited) neighbors.push(this.grid[r][c - 1]);
+
+                return neighbors;
+            }
+
+            removeWalls(a, b) {
+                let dr = a.r - b.r;
+                let dc = a.c - b.c;
+
+                if (dr === 1) { a.walls[0] = false; b.walls[2] = false; }
+                else if (dr === -1) { a.walls[2] = false; b.walls[0] = false; }
+
+                if (dc === 1) { a.walls[3] = false; b.walls[1] = false; }
+                else if (dc === -1) { a.walls[1] = false; b.walls[3] = false; }
+            }
+        }
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const levelDisplay = document.getElementById('level-display');
+        const scoreDisplay = document.getElementById('score-display');
+        const highscoreDisplay = document.getElementById('highscore-display');
+        const soundToggleBtn = document.getElementById('sound-toggle-btn');
+        const soundIconOn = document.getElementById('sound-icon-on');
+        const soundIconOff = document.getElementById('sound-icon-off');
+        const bgmSlider = document.getElementById('bgm-volume-slider');
+        const pauseBtn = document.getElementById('pause-btn');
+        const leaderboardBtn = document.getElementById('leaderboard-btn');
+
+        const startOverlay = document.getElementById('start-overlay');
+        const startBtn = document.getElementById('start-btn');
+        const instructionsBtnStart = document.getElementById('instructions-btn-start');
+        const leaderboardBtnStart = document.getElementById('leaderboard-btn-start');
+
+        const gameoverModal = document.getElementById('gameover-modal');
+        const retryBtn = document.getElementById('retry-btn');
+        const gameoverLeaderboardBtn = document.getElementById('gameover-leaderboard-btn');
+
+        const victoryModal = document.getElementById('victory-modal');
+        const nextLevelBtn = document.getElementById('next-level-btn');
+
+        const pauseModal = document.getElementById('pause-modal');
+        const resumeBtn = document.getElementById('resume-btn');
+        const pauseRestartBtn = document.getElementById('pause-restart-btn');
+        const pauseInstructionsBtn = document.getElementById('pause-instructions-btn');
+        const pauseLeaderboardBtn = document.getElementById('pause-leaderboard-btn');
+        const pauseMainmenuBtn = document.getElementById('pause-mainmenu-btn');
+
+        const leaderboardModal = document.getElementById('leaderboard-modal');
+        const leaderboardList = document.getElementById('leaderboard-list');
+        const closeLeaderboardBtn = document.getElementById('close-leaderboard-btn');
+        const clearLeaderboardBtn = document.getElementById('clear-leaderboard-btn');
+
+        const instructionsModal = document.getElementById('instructions-modal');
+        const closeInstructionsBtn = document.getElementById('close-instructions-btn');
+
+        const modalLevel = document.getElementById('modal-level');
+        const modalScore = document.getElementById('modal-score');
+
+        let currentLevel = 1;
+        let score = 0;
+        let levelStartScore = 0;
+        let highScore = parseInt(localStorage.getItem('ball_maze_highscore') || '0');
+        let gameState = 'START';
+
+        let maze = null;
+        let cellSize = 0;
+        let ball = { x: 0, y: 0, vx: 0, vy: 0, radius: 0, inflation: 1.0, angle: 0 };
+        let pumps = [];
+        let traps = [];
+        let particles = [];
+        let floatingTexts = [];
+        let portalRotation = 0;
+
+        const keys = { up: false, down: false, left: false, right: false };
+        highscoreDisplay.innerText = String(highScore).padStart(4, '0');
+
+        function getLeaderboard() {
+            try { return JSON.parse(localStorage.getItem('ball_maze_leaderboard') || '[]'); } catch (e) { return []; }
+        }
+
+        function saveScoreToLeaderboard(finalScore, levelReached) {
+            if (finalScore <= 0) return;
+            let leaderboard = getLeaderboard();
+            leaderboard.push({
+                score: finalScore,
+                level: levelReached,
+                date: new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+            });
+            leaderboard.sort((a, b) => b.score - a.score);
+            leaderboard = leaderboard.slice(0, 5);
+            localStorage.setItem('ball_maze_leaderboard', JSON.stringify(leaderboard));
+
+            if (leaderboard.length > 0) {
+                highScore = leaderboard[0].score;
+                localStorage.setItem('ball_maze_highscore', highScore);
+                highscoreDisplay.innerText = String(highScore).padStart(4, '0');
+            }
+        }
+
+        function renderLeaderboard() {
+            const leaderboard = getLeaderboard();
+            leaderboardList.innerHTML = '';
+
+            if (leaderboard.length === 0) {
+                leaderboardList.innerHTML = `<div class="p-4 text-center text-slate-500 text-xs sm:text-sm bg-slate-900/40 rounded-xl border border-slate-800">Chưa có kỷ lục nào được ghi nhận.</div>`;
+                return;
+            }
+
+            leaderboard.forEach((entry, idx) => {
+                let rankBadge = `<span class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 font-bold text-xs flex items-center justify-center">${idx + 1}</span>`;
+                let borderStyle = 'border-slate-800 bg-slate-900/50';
+
+                if (idx === 0) {
+                    rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black text-xs flex items-center justify-center shadow-md shadow-amber-400/30">1</span>`;
+                    borderStyle = 'border-amber-500/40 bg-amber-500/10';
+                } else if (idx === 1) {
+                    rankBadge = `<span class="w-6 h-6 rounded-full bg-slate-300 text-slate-950 font-black text-xs flex items-center justify-center">2</span>`;
+                    borderStyle = 'border-slate-400/30 bg-slate-400/10';
+                } else if (idx === 2) {
+                    rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-700 text-amber-100 font-black text-xs flex items-center justify-center">3</span>`;
+                    borderStyle = 'border-amber-700/30 bg-amber-700/10';
+                }
+
+                const row = document.createElement('div');
+                row.className = `p-2.5 rounded-xl border ${borderStyle} flex items-center justify-between gap-2 text-xs sm:text-sm`;
+                row.innerHTML = `
+                    <div class="flex items-center gap-2.5">
+                        ${rankBadge}
+                        <div class="text-left">
+                            <div class="arcade-font text-pink-500 font-bold">${String(entry.score).padStart(4, '0')} pts</div>
+                            <div class="text-[10px] text-slate-400">Màn ${String(entry.level).padStart(2, '0')} • ${entry.date}</div>
+                        </div>
+                    </div>
+                    <span class="arcade-font text-cyan-400 text-xs font-semibold">TOP ${idx + 1}</span>
+                `;
+                leaderboardList.appendChild(row);
+            });
+        }
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            if (!container) return;
+            const size = Math.min(container.clientWidth - 16, container.clientHeight - 16);
+            canvas.width = Math.max(280, size);
+            canvas.height = Math.max(280, size);
+
+            if (maze) {
+                cellSize = canvas.width / maze.cols;
+                ball.radius = cellSize * 0.32;
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function initLevel(levelNum) {
+            currentLevel = levelNum;
+            levelDisplay.innerText = String(currentLevel).padStart(2, '0');
+            scoreDisplay.innerText = String(score).padStart(4, '0');
+
+            const mazeDim = Math.min(7 + (currentLevel - 1) * 2, 19);
+            maze = new Maze(mazeDim, mazeDim);
+            maze.generate();
+            resizeCanvas();
+
+            ball.x = cellSize * 0.5;
+            ball.y = cellSize * 0.5;
+            ball.vx = 0;
+            ball.vy = 0;
+            ball.inflation = 1.0;
+
+            let pathCells = [];
+            for (let r = 0; r < maze.rows; r++) {
+                for (let c = 0; c < maze.cols; c++) {
+                    if ((r === 0 && c === 0) || (r === maze.rows - 1 && c === maze.cols - 1)) continue;
+                    pathCells.push({ r, c });
+                }
+            }
+
+            for (let i = pathCells.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pathCells[i], pathCells[j]] = [pathCells[j], pathCells[i]];
+            }
+
+            pumps = [];
+            const pumpCount = Math.min(2 + Math.floor(currentLevel * 0.8), pathCells.length);
+            for (let i = 0; i < pumpCount; i++) {
+                const cell = pathCells.pop();
+                pumps.push({ r: cell.r, c: cell.c, x: (cell.c + 0.5) * cellSize, y: (cell.r + 0.5) * cellSize, active: true, pulse: Math.random() * Math.PI * 2 });
+            }
+
+            traps = [];
+            const trapCount = Math.min(1 + Math.floor(currentLevel * 1.2), pathCells.length);
+            for (let i = 0; i < trapCount; i++) {
+                const cell = pathCells.pop();
+                traps.push({ r: cell.r, c: cell.c, x: (cell.c + 0.5) * cellSize, y: (cell.r + 0.5) * cellSize, radius: cellSize * 0.28, active: true });
+            }
+
+            particles = [];
+            floatingTexts = [];
+        }
+
+        function updatePhysics(dt) {
+            if (gameState !== 'PLAYING') return;
+
+            const accel = (canvas.width * 2.8) * (1 + currentLevel * 0.03);
+            const friction = 0.88;
+
+            if (keys.up) ball.vy -= accel * dt;
+            if (keys.down) ball.vy += accel * dt;
+            if (keys.left) ball.vx -= accel * dt;
+            if (keys.right) ball.vx += accel * dt;
+
+            ball.vx *= friction;
+            ball.vy *= friction;
+
+            ball.x += ball.vx * dt;
+            ball.y += ball.vy * dt;
+
+            const speed = Math.hypot(ball.vx, ball.vy);
+            if (speed > 5) {
+                ball.angle += (ball.vx + ball.vy) * 0.005;
+            }
+
+            resolveBallWallCollisions();
+
+            if (ball.inflation > 1.0) {
+                ball.inflation = Math.max(1.0, ball.inflation - dt * 2.5);
+            }
+
+            pumps.forEach(pump => {
+                if (!pump.active) return;
+                const dist = Math.hypot(ball.x - pump.x, ball.y - pump.y);
+                if (dist < (ball.radius * ball.inflation + cellSize * 0.25)) {
+                    pump.active = false;
+                    score += 100;
+                    scoreDisplay.innerText = String(score).padStart(4, '0');
+                    if (score > highScore) {
+                        highScore = score;
+                        localStorage.setItem('ball_maze_highscore', highScore);
+                        highscoreDisplay.innerText = String(highScore).padStart(4, '0');
+                    }
+                    ball.inflation = 1.75;
+                    audio.playPump();
+                    createSparkleParticles(pump.x, pump.y, '#facc15');
+                    floatingTexts.push({ x: pump.x, y: pump.y, text: '+100', life: 1.0, vy: -40 });
+                }
+            });
+
+            traps.forEach(trap => {
+                if (!trap.active) return;
+                const dist = Math.hypot(ball.x - trap.x, ball.y - trap.y);
+                if (dist < (ball.radius * 0.5 + trap.radius * 0.5)) {
+                    triggerGameOver();
+                }
+            });
+
+            const finishX = (maze.cols - 0.5) * cellSize;
+            const finishY = (maze.rows - 0.5) * cellSize;
+            if (Math.hypot(ball.x - finishX, ball.y - finishY) < (ball.radius + cellSize * 0.25)) {
+                triggerLevelClear();
+            }
+        }
+
+        function resolveBallWallCollisions() {
+            const cs = cellSize;
+            const r = ball.radius;
+
+            const minC = Math.max(0, Math.floor((ball.x - r) / cs));
+            const maxC = Math.min(maze.cols - 1, Math.floor((ball.x + r) / cs));
+            const minR = Math.max(0, Math.floor((ball.y - r) / cs));
+            const maxR = Math.min(maze.rows - 1, Math.floor((ball.y + r) / cs));
+
+            for (let row = minR; row <= maxR; row++) {
+                for (let col = minC; col <= maxC; col++) {
+                    const cell = maze.grid[row][col];
+                    const x1 = col * cs, y1 = row * cs, x2 = (col + 1) * cs, y2 = (row + 1) * cs;
+
+                    if (cell.walls[0]) collideSegment(x1, y1, x2, y1);
+                    if (cell.walls[1]) collideSegment(x2, y1, x2, y2);
+                    if (cell.walls[2]) collideSegment(x1, y2, x2, y2);
+                    if (cell.walls[3]) collideSegment(x1, y1, x1, y2);
+                }
+            }
+        }
+
+        function collideSegment(x1, y1, x2, y2) {
+            const dx = x2 - x1, dy = y2 - y1;
+            const lenSq = dx * dx + dy * dy;
+            if (lenSq === 0) return;
+
+            let t = Math.max(0, Math.min(1, ((ball.x - x1) * dx + (ball.y - y1) * dy) / lenSq));
+            const nearestX = x1 + t * dx, nearestY = y1 + t * dy;
+            const distX = ball.x - nearestX, distY = ball.y - nearestY;
+            const distSq = distX * distX + distY * distY;
+
+            if (distSq < ball.radius * ball.radius && distSq > 0) {
+                const dist = Math.sqrt(distSq);
+                const overlap = ball.radius - dist;
+                const nx = distX / dist, ny = distY / dist;
+
+                ball.x += nx * overlap;
+                ball.y += ny * overlap;
+
+                const dot = ball.vx * nx + ball.vy * ny;
+                if (dot < 0) {
+                    ball.vx -= 1.3 * dot * nx;
+                    ball.vy -= 1.3 * dot * ny;
+                }
+            }
+        }
+
+        function createSparkleParticles(x, y, color) {
+            for (let i = 0; i < 20; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 40 + Math.random() * 120;
+                particles.push({
+                    x, y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: 2 + Math.random() * 4,
+                    color: color,
+                    life: 1.0
+                });
+            }
+        }
+
+        function updateFX(dt) {
+            if (gameState === 'PAUSED') return;
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.life -= dt * 2.0;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                const ft = floatingTexts[i];
+                ft.y += ft.vy * dt;
+                ft.life -= dt * 1.5;
+                if (ft.life <= 0) floatingTexts.splice(i, 1);
+            }
+
+            portalRotation += dt * 3.0;
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (!maze) return;
+            const cs = cellSize;
+
+            // Maze Walls
+            ctx.strokeStyle = '#06b6d4';
+            ctx.lineWidth = Math.max(3, cs * 0.08);
+            ctx.lineCap = 'round';
+            ctx.shadowColor = 'rgba(6, 182, 212, 0.6)';
+            ctx.shadowBlur = 10;
+
+            ctx.beginPath();
+            for (let r = 0; r < maze.rows; r++) {
+                for (let c = 0; c < maze.cols; c++) {
+                    const cell = maze.grid[r][c];
+                    const x = c * cs, y = r * cs;
+                    if (cell.walls[0]) { ctx.moveTo(x, y); ctx.lineTo(x + cs, y); }
+                    if (cell.walls[1]) { ctx.moveTo(x + cs, y); ctx.lineTo(x + cs, y + cs); }
+                    if (cell.walls[2]) { ctx.moveTo(x, y + cs); ctx.lineTo(x + cs, y + cs); }
+                    if (cell.walls[3]) { ctx.moveTo(x, y); ctx.lineTo(x, y + cs); }
+                }
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Start Area
+            ctx.fillStyle = 'rgba(6, 182, 212, 0.2)';
+            ctx.beginPath();
+            ctx.arc(cs * 0.5, cs * 0.5, cs * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Finish Portal
+            const finishX = (maze.cols - 0.5) * cs, finishY = (maze.rows - 0.5) * cs;
+            ctx.save();
+            ctx.translate(finishX, finishY);
+            ctx.rotate(portalRotation);
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 3;
+            ctx.shadowColor = '#10b981';
+            ctx.shadowBlur = 12;
+
+            ctx.beginPath();
+            for (let i = 0; i < 4; i++) {
+                ctx.rotate(Math.PI / 2);
+                ctx.arc(0, 0, cs * 0.35, 0, Math.PI * 0.4);
+            }
+            ctx.stroke();
+
+            ctx.fillStyle = '#34d399';
+            ctx.beginPath();
+            ctx.arc(0, 0, cs * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // Traps
+            traps.forEach(trap => {
+                if (!trap.active) return;
+                ctx.save();
+                ctx.translate(trap.x, trap.y);
+                ctx.fillStyle = '#020617';
+                ctx.beginPath();
+                ctx.arc(0, 0, trap.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 2.5;
+                ctx.shadowColor = '#ef4444';
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.arc(0, 0, trap.radius, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            });
+
+            // Air Pumps
+            pumps.forEach(pump => {
+                if (!pump.active) return;
+                if (gameState !== 'PAUSED') pump.pulse += 0.05;
+                const scale = 1 + Math.sin(pump.pulse) * 0.08;
+                ctx.save();
+                ctx.translate(pump.x, pump.y);
+                ctx.scale(scale, scale);
+                ctx.fillStyle = '#facc15';
+                ctx.shadowColor = '#facc15';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(0, 0, cs * 0.22, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // Particles
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = Math.max(0, p.life);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1.0;
+
+            // Ball
+            if (gameState === 'PLAYING' || gameState === 'LEVEL_CLEAR' || gameState === 'PAUSED') {
+                const currentRadius = ball.radius * ball.inflation;
+                ctx.save();
+                ctx.translate(ball.x, ball.y);
+                ctx.rotate(ball.angle);
+
+                const grad = ctx.createRadialGradient(-currentRadius * 0.3, -currentRadius * 0.3, currentRadius * 0.1, 0, 0, currentRadius);
+                grad.addColorStop(0, '#f472b6');
+                grad.addColorStop(0.5, '#ec4899');
+                grad.addColorStop(1, '#be185d');
+
+                ctx.fillStyle = grad;
+                ctx.shadowColor = '#ec4899';
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.arc(0, 0, currentRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+                ctx.lineWidth = currentRadius * 0.25;
+                ctx.beginPath();
+                ctx.arc(0, 0, currentRadius * 0.5, -0.6, 0.6);
+                ctx.stroke();
+
+                ctx.restore();
+            }
+
+            // Floating Score
+            floatingTexts.forEach(ft => {
+                ctx.save();
+                ctx.font = 'bold 16px Orbitron, sans-serif';
+                ctx.fillStyle = '#facc15';
+                ctx.shadowColor = '#facc15';
+                ctx.shadowBlur = 8;
+                ctx.globalAlpha = Math.max(0, ft.life);
+                ctx.textAlign = 'center';
+                ctx.fillText(ft.text, ft.x, ft.y);
+                ctx.restore();
+            });
+            ctx.globalAlpha = 1.0;
+        }
+
+        let lastTime = performance.now();
+        function gameLoop(currentTime) {
+            const dt = Math.min((currentTime - lastTime) / 1000, 0.1);
+            lastTime = currentTime;
+
+            if (gameState === 'PLAYING' && activeGame === 'ball-maze') {
+                updatePhysics(dt);
+            }
+            updateFX(dt);
+            render();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function togglePause() {
+            if (gameState === 'PLAYING') {
+                gameState = 'PAUSED';
+                audio.pauseBGM();
+                pauseModal.classList.remove('hidden');
+            } else if (gameState === 'PAUSED') {
+                gameState = 'PLAYING';
+                lastTime = performance.now();
+                audio.resumeBGM();
+                pauseModal.classList.add('hidden');
+                instructionsModal.classList.add('hidden');
+                leaderboardModal.classList.add('hidden');
+            }
+        }
+
+        function triggerGameOver() {
+            gameState = 'GAMEOVER';
+            audio.playTrap();
+            pauseBtn.classList.add('hidden');
+
+            saveScoreToLeaderboard(score, currentLevel);
+
+            modalLevel.innerText = String(currentLevel).padStart(2, '0');
+            modalScore.innerText = String(score).padStart(4, '0');
+            gameoverModal.classList.remove('hidden');
+        }
+
+        function triggerLevelClear() {
+            gameState = 'LEVEL_CLEAR';
+            audio.playWin();
+            pauseBtn.classList.add('hidden');
+
+            saveScoreToLeaderboard(score, currentLevel);
+            victoryModal.classList.remove('hidden');
+        }
+
+        function startNewGame() {
+            audio.init();
+            score = 0;
+            levelStartScore = 0;
+            initLevel(1);
+            startOverlay.classList.add('hidden');
+            pauseBtn.classList.remove('hidden');
+            gameState = 'PLAYING';
+            lastTime = performance.now();
+        }
+
+        function retryCurrentLevel() {
+            audio.init();
+            score = levelStartScore;
+            initLevel(currentLevel);
+            gameoverModal.classList.add('hidden');
+            pauseModal.classList.add('hidden');
+            pauseBtn.classList.remove('hidden');
+            gameState = 'PLAYING';
+            lastTime = performance.now();
+        }
+
+        function returnToMainMenu() {
+            if (score > 0) {
+                saveScoreToLeaderboard(score, currentLevel);
+            }
+            gameState = 'START';
+            audio.pauseBGM();
+            pauseModal.classList.add('hidden');
+            gameoverModal.classList.add('hidden');
+            victoryModal.classList.add('hidden');
+            instructionsModal.classList.add('hidden');
+            leaderboardModal.classList.add('hidden');
+            pauseBtn.classList.add('hidden');
+            startOverlay.classList.remove('hidden');
+        }
+
+        // Key Listeners
+        window.addEventListener('keydown', e => {
+            if (activeGame === 'ball-maze') {
+                if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = true;
+                if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = true;
+                if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = true;
+                if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = true;
+
+                if (['Escape', 'KeyP'].includes(e.code)) {
+                    if (gameState === 'PLAYING' || gameState === 'PAUSED') togglePause();
+                }
+            }
+        });
+
+        window.addEventListener('keyup', e => {
+            if (activeGame === 'ball-maze') {
+                if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = false;
+                if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = false;
+                if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = false;
+                if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = false;
+            }
+        });
+
+        // Touch & D-Pad Controls
+        function bindDPadButton(btnId, keyName) {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+            const startPress = (e) => { e.preventDefault(); audio.init(); keys[keyName] = true; };
+            const endPress = (e) => { e.preventDefault(); keys[keyName] = false; };
+
+            btn.addEventListener('touchstart', startPress);
+            btn.addEventListener('touchend', endPress);
+            btn.addEventListener('mousedown', startPress);
+            btn.addEventListener('mouseup', endPress);
+            btn.addEventListener('mouseleave', endPress);
+        }
+
+        bindDPadButton('btn-up', 'up');
+        bindDPadButton('btn-down', 'down');
+        bindDPadButton('btn-left', 'left');
+        bindDPadButton('btn-right', 'right');
+
+        // Touch Swipe on Canvas
+        let touchStartX = 0, touchStartY = 0;
+        canvas.addEventListener('touchstart', e => {
+            if (e.touches.length > 0) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                audio.init();
+            }
+        }, { passive: true });
+
+        canvas.addEventListener('touchmove', e => {
+            if (e.touches.length === 0 || gameState !== 'PLAYING') return;
+            const dx = e.touches[0].clientX - touchStartX;
+            const dy = e.touches[0].clientY - touchStartY;
+
+            keys.left = dx < -15;
+            keys.right = dx > 15;
+            keys.up = dy < -15;
+            keys.down = dy > 15;
+        }, { passive: true });
+
+        canvas.addEventListener('touchend', () => {
+            keys.left = keys.right = keys.up = keys.down = false;
+        });
+
+        // Audio Controls
+        soundToggleBtn.addEventListener('click', () => {
+            audio.init();
+            const isMuted = audio.toggleMute();
+            if (isMuted) {
+                soundIconOn.classList.add('hidden');
+                soundIconOff.classList.remove('hidden');
+            } else {
+                soundIconOn.classList.remove('hidden');
+                soundIconOff.classList.add('hidden');
+            }
+        });
+
+        bgmSlider.addEventListener('input', (e) => {
+            audio.init();
+            audio.setBGMVolume(parseFloat(e.target.value));
+        });
+
+        // Button Event Bindings for Ball Maze
+        startBtn.addEventListener('click', startNewGame);
+        retryBtn.addEventListener('click', retryCurrentLevel);
+        nextLevelBtn.addEventListener('click', () => {
+            audio.init();
+            levelStartScore = score;
+            initLevel(currentLevel + 1);
+            victoryModal.classList.add('hidden');
+            pauseBtn.classList.remove('hidden');
+            gameState = 'PLAYING';
+            lastTime = performance.now();
+        });
+
+        pauseBtn.addEventListener('click', togglePause);
+        resumeBtn.addEventListener('click', togglePause);
+        pauseRestartBtn.addEventListener('click', retryCurrentLevel);
+        pauseMainmenuBtn.addEventListener('click', returnToMainMenu);
+
+        // Leaderboard Triggers
+        const openLeaderboard = () => { renderLeaderboard(); leaderboardModal.classList.remove('hidden'); };
+        leaderboardBtn.addEventListener('click', openLeaderboard);
+        leaderboardBtnStart.addEventListener('click', openLeaderboard);
+        pauseLeaderboardBtn.addEventListener('click', openLeaderboard);
+        gameoverLeaderboardBtn.addEventListener('click', openLeaderboard);
+
+        closeLeaderboardBtn.addEventListener('click', () => leaderboardModal.classList.add('hidden'));
+        clearLeaderboardBtn.addEventListener('click', () => {
+            if (confirm('Bạn có chắc muốn xóa tất cả kỷ lục đã lưu?')) {
+                localStorage.removeItem('ball_maze_leaderboard');
+                localStorage.removeItem('ball_maze_highscore');
+                highScore = 0;
+                highscoreDisplay.innerText = '0000';
+                renderLeaderboard();
+            }
+        });
+
+        // Instructions Triggers
+        const openInstructions = () => instructionsModal.classList.remove('hidden');
+        instructionsBtnStart.addEventListener('click', openInstructions);
+        pauseInstructionsBtn.addEventListener('click', openInstructions);
+        closeInstructionsBtn.addEventListener('click', () => instructionsModal.classList.add('hidden'));
+
+        // Initialize Render Engine
+        initLevel(1);
+        requestAnimationFrame(gameLoop);
+
+        /* ==========================================================================
+           GAME 2: RẮN SĂN MỒI CYBERPUNK (SNAKE ENGINE)
+           ========================================================================== */
+        const snakeCanvas = document.getElementById('snakeCanvas');
+        const snakeCtx = snakeCanvas.getContext('2d');
+        let snake = [], food = {}, snakeDir = 'RIGHT', nextDir = 'RIGHT';
+        let snakeScore = 0, snakeHighScore = parseInt(localStorage.getItem('snake_highscore') || '0');
+        let snakeInterval = null;
+
+        document.getElementById('snake-highscore').innerText = snakeHighScore;
+
+        function initSnakeGame() {
+            document.getElementById('snake-overlay').classList.remove('hidden');
+            drawSnakeBoard();
+        }
+
+        function startSnakeGame() {
+            document.getElementById('snake-overlay').classList.add('hidden');
+            snake = [{x: 10, y: 10}, {x: 9, y: 10}, {x: 8, y: 10}];
+            snakeDir = 'RIGHT';
+            nextDir = 'RIGHT';
+            snakeScore = 0;
+            document.getElementById('snake-score').innerText = '0';
+            spawnSnakeFood();
+            clearInterval(snakeInterval);
+            snakeInterval = setInterval(updateSnake, 100);
+        }
+
+        function spawnSnakeFood() {
+            food = {
+                x: Math.floor(Math.random() * 20),
+                y: Math.floor(Math.random() * 20)
+            };
+        }
+
+        function setSnakeDir(dir) {
+            if (dir === 'UP' && snakeDir !== 'DOWN') nextDir = 'UP';
+            if (dir === 'DOWN' && snakeDir !== 'UP') nextDir = 'DOWN';
+            if (dir === 'LEFT' && snakeDir !== 'RIGHT') nextDir = 'LEFT';
+            if (dir === 'RIGHT' && snakeDir !== 'LEFT') nextDir = 'RIGHT';
+        }
+
+        function updateSnake() {
+            snakeDir = nextDir;
+            let head = { ...snake[0] };
+
+            if (snakeDir === 'UP') head.y--;
+            if (snakeDir === 'DOWN') head.y++;
+            if (snakeDir === 'LEFT') head.x--;
+            if (snakeDir === 'RIGHT') head.x++;
+
+            if (head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20) {
+                return gameOverSnake();
+            }
+
+            for (let segment of snake) {
+                if (segment.x === head.x && segment.y === head.y) {
+                    return gameOverSnake();
+                }
+            }
+
+            snake.unshift(head);
+
+            if (head.x === food.x && head.y === food.y) {
+                snakeScore += 10;
+                document.getElementById('snake-score').innerText = snakeScore;
+                if (snakeScore > snakeHighScore) {
+                    snakeHighScore = snakeScore;
+                    localStorage.setItem('snake_highscore', snakeHighScore);
+                    document.getElementById('snake-highscore').innerText = snakeHighScore;
+                }
+                spawnSnakeFood();
+            } else {
+                snake.pop();
+            }
+
+            drawSnakeBoard();
+        }
+
+        function gameOverSnake() {
+            clearInterval(snakeInterval);
+            alert(`GAME OVER! Điểm số của bạn: ${snakeScore}`);
+            document.getElementById('snake-overlay').classList.remove('hidden');
+        }
+
+        function drawSnakeBoard() {
+            snakeCtx.fillStyle = '#020617';
+            snakeCtx.fillRect(0, 0, 400, 400);
+
+            // Food
+            snakeCtx.fillStyle = '#ef4444';
+            snakeCtx.shadowColor = '#ef4444';
+            snakeCtx.shadowBlur = 10;
+            snakeCtx.beginPath();
+            snakeCtx.arc(food.x * 20 + 10, food.y * 20 + 10, 8, 0, Math.PI * 2);
+            snakeCtx.fill();
+            snakeCtx.shadowBlur = 0;
+
+            // Snake
+            snake.forEach((seg, index) => {
+                snakeCtx.fillStyle = index === 0 ? '#10b981' : '#34d399';
+                snakeCtx.fillRect(seg.x * 20 + 1, seg.y * 20 + 1, 18, 18);
+            });
+        }
+
+        window.addEventListener('keydown', e => {
+            if (activeGame === 'snake') {
+                if (e.key === 'ArrowUp') setSnakeDir('UP');
+                if (e.key === 'ArrowDown') setSnakeDir('DOWN');
+                if (e.key === 'ArrowLeft') setSnakeDir('LEFT');
+                if (e.key === 'ArrowRight') setSnakeDir('RIGHT');
+            }
+        });
+    </script>
+</body>
+</html>
